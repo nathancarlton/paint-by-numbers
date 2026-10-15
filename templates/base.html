@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Paint by Numbers{% endblock %}</title>
+<style>
+:root{--ink:#1e1b2e;--bg:#fbf7f0;--card:#fff;--accent:#e4572e;--accent2:#17bebb;--muted:#6b6880}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+.stripe{height:8px;background:linear-gradient(90deg,#e4572e,#f3a712,#17bebb,#76b041,#a846a0)}
+header{padding:22px 16px 12px;text-align:center}
+header h1{margin:0;font-size:1.7rem}
+header p{margin:4px 0 0;color:var(--muted)}
+main{max-width:720px;margin:0 auto;padding:0 16px 48px}
+.card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(0,0,0,.06);margin-bottom:16px}
+.card h3{margin:0 0 12px}
+.btn{display:block;width:100%;padding:16px;border:0;border-radius:14px;font-size:1.1rem;font-weight:600;background:var(--accent);color:#fff;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
+.btn.secondary{background:#eeeae3;color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.small{padding:8px 10px;font-size:.85rem;border-radius:10px}
+.row{display:flex;gap:12px}
+.row>*{flex:1}
+label.field{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+select{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;font-size:1rem;background:#fff;font-family:inherit}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;border:1px solid rgba(0,0,0,.15)}
+img.preview{display:block;width:100%;border-radius:12px;border:1px solid #e5e5e5;background:#fff}
+.spinner{width:44px;height:44px;border:5px solid #eee;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.muted{color:var(--muted);font-size:.9rem}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<header><h1>🎨 Paint by Numbers</h1><p>{% block tagline %}Turn any photo into a painting kit{% endblock %}</p></header>
+<main>{% block body %}{% endblock %}</main>
+</body>
+</html>

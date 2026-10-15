@@ -1,0 +1,8 @@
+flask
+pillow
+pillow-heif
+numpy
+scipy
+scikit-image
+reportlab
+qrcode[pil]

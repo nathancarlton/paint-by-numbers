@@ -1,0 +1,246 @@
+{
+ "name": "Paintable Pictures - Paint Your Photo by Number, Pets Edition (48 paints)",
+ "source": "Colours sampled from the maker's back-of-box artwork (shop.paintablepictures.com, SKU PBNPET4801 / Amazon B0CJT74PPP). Pot numbers are the kit's; names are descriptive only, the pots are unnamed.",
+ "paints": [
+  {
+   "number": 1,
+   "name": "Pink",
+   "hex": "#DD8699"
+  },
+  {
+   "number": 2,
+   "name": "Coral red",
+   "hex": "#D0545C"
+  },
+  {
+   "number": 3,
+   "name": "Bright red",
+   "hex": "#E71C30"
+  },
+  {
+   "number": 4,
+   "name": "Crimson",
+   "hex": "#9F2137"
+  },
+  {
+   "number": 5,
+   "name": "Maroon",
+   "hex": "#651C30"
+  },
+  {
+   "number": 6,
+   "name": "Rust",
+   "hex": "#BB592A"
+  },
+  {
+   "number": 7,
+   "name": "Orange",
+   "hex": "#EDA153"
+  },
+  {
+   "number": 8,
+   "name": "Peach",
+   "hex": "#EEC3B2"
+  },
+  {
+   "number": 9,
+   "name": "Apricot",
+   "hex": "#EEBC7D"
+  },
+  {
+   "number": 10,
+   "name": "Burnt orange",
+   "hex": "#C97D2F"
+  },
+  {
+   "number": 11,
+   "name": "Tan",
+   "hex": "#C58A6A"
+  },
+  {
+   "number": 12,
+   "name": "Gold",
+   "hex": "#CCA055"
+  },
+  {
+   "number": 13,
+   "name": "Cream yellow",
+   "hex": "#F2E9B0"
+  },
+  {
+   "number": 14,
+   "name": "Yellow",
+   "hex": "#F1CE10"
+  },
+  {
+   "number": 15,
+   "name": "Olive green",
+   "hex": "#909B3F"
+  },
+  {
+   "number": 16,
+   "name": "Green",
+   "hex": "#418940"
+  },
+  {
+   "number": 17,
+   "name": "Teal",
+   "hex": "#3ABFAA"
+  },
+  {
+   "number": 18,
+   "name": "Blue teal",
+   "hex": "#4E8991"
+  },
+  {
+   "number": 19,
+   "name": "Sky blue",
+   "hex": "#7DA0C6"
+  },
+  {
+   "number": 20,
+   "name": "Blue",
+   "hex": "#137DBB"
+  },
+  {
+   "number": 21,
+   "name": "Navy",
+   "hex": "#0D4D95"
+  },
+  {
+   "number": 22,
+   "name": "Indigo",
+   "hex": "#2C3087"
+  },
+  {
+   "number": 23,
+   "name": "Purple",
+   "hex": "#772883"
+  },
+  {
+   "number": 24,
+   "name": "Lavender",
+   "hex": "#B47DB6"
+  },
+  {
+   "number": 25,
+   "name": "Blush",
+   "hex": "#E6D4D4"
+  },
+  {
+   "number": 26,
+   "name": "Sand",
+   "hex": "#C0A391"
+  },
+  {
+   "number": 27,
+   "name": "Taupe",
+   "hex": "#A58175"
+  },
+  {
+   "number": 28,
+   "name": "Brown",
+   "hex": "#AC7E5A"
+  },
+  {
+   "number": 29,
+   "name": "Red brown",
+   "hex": "#84422A"
+  },
+  {
+   "number": 30,
+   "name": "Olive brown",
+   "hex": "#6B5C33"
+  },
+  {
+   "number": 31,
+   "name": "Dark brown",
+   "hex": "#63503F"
+  },
+  {
+   "number": 32,
+   "name": "Slate",
+   "hex": "#5A6770"
+  },
+  {
+   "number": 33,
+   "name": "Dark slate",
+   "hex": "#435464"
+  },
+  {
+   "number": 34,
+   "name": "Charcoal blue",
+   "hex": "#323F48"
+  },
+  {
+   "number": 35,
+   "name": "Mauve",
+   "hex": "#7C6669"
+  },
+  {
+   "number": 36,
+   "name": "Plum",
+   "hex": "#573E41"
+  },
+  {
+   "number": 37,
+   "name": "White",
+   "hex": "#FAFEFF"
+  },
+  {
+   "number": 38,
+   "name": "Ice grey",
+   "hex": "#DBE4EB"
+  },
+  {
+   "number": 39,
+   "name": "Blue grey",
+   "hex": "#BAC5D7"
+  },
+  {
+   "number": 40,
+   "name": "Warm grey",
+   "hex": "#C5BEB6"
+  },
+  {
+   "number": 41,
+   "name": "Grey",
+   "hex": "#B6B1AC"
+  },
+  {
+   "number": 42,
+   "name": "Mid grey",
+   "hex": "#888C8F"
+  },
+  {
+   "number": 43,
+   "name": "Light grey",
+   "hex": "#BCBCBC"
+  },
+  {
+   "number": 44,
+   "name": "Dark grey",
+   "hex": "#54575E"
+  },
+  {
+   "number": 45,
+   "name": "Steel grey",
+   "hex": "#63666D"
+  },
+  {
+   "number": 46,
+   "name": "Dark teal",
+   "hex": "#163331"
+  },
+  {
+   "number": 47,
+   "name": "Dark maroon",
+   "hex": "#3E1E1F"
+  },
+  {
+   "number": 48,
+   "name": "Black",
+   "hex": "#2D2926"
+  }
+ ]
+}

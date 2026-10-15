@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block tagline %}Scan the code with your phone camera to turn a photo into a painting{% endblock %}
+{% block body %}
+<style>
+main{max-width:1150px}
+.k{display:grid;grid-template-columns:400px 1fr;gap:20px;align-items:start}
+@media(max-width:860px){.k{grid-template-columns:1fr}}
+.jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.job{background:#faf8f4;border-radius:12px;padding:8px;text-align:center;font-size:.85rem}
+.job img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#eee;display:block;margin-bottom:6px}
+.job .ph{width:100%;aspect-ratio:1;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:6px}
+.big{font-size:1.5rem;font-weight:700;word-break:break-all;margin-top:6px}
+.job .row{margin-top:6px}
+</style>
+<div class="k">
+  <div class="card center">
+    <img src="/qr.png" alt="QR code" style="width:100%;max-width:360px;image-rendering:pixelated">
+    <div class="big">{{ url }}</div>
+    <p class="muted">Phone must be on the same Wi-Fi as this computer.<br>Pick a photo → preview → print.</p>
+    <p class="muted">Printer: <b>{{ printer or 'none found' }}</b> · Paper: {{ paper|upper }}{% if no_print %} · <b style="color:#c33">printing disabled</b>{% endif %}</p>
+    <p class="muted">Paint kit: <b>{% if kit %}{{ kit }}{% else %}none (free colours)</b>{% endif %}</p>
+    <form id="upf" enctype="multipart/form-data" style="margin-top:14px">
+      <input id="upfile" name="photo" type="file" accept="image/*" hidden>
+      <div class="row" style="text-align:left;margin-bottom:10px">
+        <div>
+          <label class="field" for="upcolors">Colours</label>
+          <select id="upcolors" name="colors">
+            {% for c in colors %}<option value="{{ c }}" {% if c == default_colors %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="field" for="updetail">Detail</label>
+          <select id="updetail" name="detail">
+            {% for d in details %}<option value="{{ d }}" {% if d == 'medium' %}selected{% endif %}>{{ d|capitalize }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <button type="button" class="btn secondary" id="upbtn">⬆️ Upload a photo from this computer</button>
+      <p id="upmsg" class="muted" style="margin:8px 0 0;min-height:1.2em"></p>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Recent paintings</h3>
+    <div id="jobs" class="jobs"><p class="muted">Nothing yet — scan the code!</p></div>
+  </div>
+</div>
+<script>
+const noPrint = {{ no_print|tojson }};
+let refreshTimer = null;
+async function refresh() {
+  clearTimeout(refreshTimer);
+  try {
+    const r = await fetch('/api/jobs', { cache: 'no-store' });
+    const { jobs } = await r.json();
+    const el = document.getElementById('jobs');
+    if (!jobs.length) return;
+    el.innerHTML = '';
+    for (const j of jobs) {
+      const d = document.createElement('div'); d.className = 'job';
+      const when = j.created.slice(11, 16);
+      if (j.status === 'done') {
+        d.innerHTML = `<a href="/jobs/${j.id}/pbn.pdf" target="_blank"><img src="/jobs/${j.id}/colored.png" alt=""></a>
+          <div>${when} · ${j.n_colors} colours · printed ${j.prints}×</div>
+          <div class="row"><a class="btn secondary small" href="/job/${j.id}">View</a>
+          <button class="btn small" ${noPrint ? 'disabled' : ''} data-id="${j.id}">Print</button></div>`;
+      } else if (j.status === 'processing') {
+        d.innerHTML = `<div class="ph"><div class="spinner" style="margin:0"></div></div><div>${when} · working…</div>`;
+      } else {
+        d.innerHTML = `<div class="ph">❌</div><div class="muted">${when} · ${j.error || 'failed'}</div>`;
+      }
+      el.appendChild(d);
+    }
+  } catch (e) { /* server restarting; try again */ }
+  refreshTimer = setTimeout(refresh, 3000);
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-id]'); if (!b) return;
+  b.disabled = true; b.textContent = '…';
+  const r = await fetch('/api/jobs/' + b.dataset.id + '/print', { method: 'POST' });
+  const j = await r.json();
+  b.textContent = r.ok ? 'Sent ✓' : 'Failed';
+  if (!r.ok) alert(j.error);
+  setTimeout(() => { b.disabled = false; b.textContent = 'Print'; }, 6000);
+});
+const upfile = document.getElementById('upfile'), upbtn = document.getElementById('upbtn'),
+      upmsg = document.getElementById('upmsg'), upf = document.getElementById('upf');
+upbtn.addEventListener('click', () => upfile.click());
+upfile.addEventListener('change', async () => {
+  const file = upfile.files[0]; if (!file) return;
+  upbtn.disabled = true; upmsg.textContent = 'Uploading ' + file.name + '…';
+  try {
+    const r = await fetch('/api/jobs', { method: 'POST', body: new FormData(upf) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    upmsg.textContent = '✅ Added — it will show up under Recent paintings in a few seconds.';
+    refresh();
+  } catch (e) {
+    upmsg.textContent = '❌ Upload failed: ' + e.message;
+  } finally {
+    upfile.value = ''; upbtn.disabled = false;
+    setTimeout(() => { upmsg.textContent = ''; }, 8000);
+  }
+});
+refresh();
+</script>
+{% endblock %}

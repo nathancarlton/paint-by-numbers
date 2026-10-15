@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block body %}
+<form id="f" class="card" enctype="multipart/form-data">
+  <input id="photo" name="photo" type="file" accept="image/*" hidden>
+  <label for="photo" class="btn secondary" id="pick">📷 Choose a photo</label>
+  <img id="thumb" class="preview" style="display:none;margin-top:12px" alt="">
+  <div class="row" style="margin-top:16px">
+    <div>
+      <label class="field" for="colors">Colours</label>
+      <select id="colors" name="colors">
+        {% for c in colors %}<option value="{{ c }}" {% if c == default_colors %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="field" for="detail">Detail</label>
+      <select id="detail" name="detail">
+        {% for d in details %}<option value="{{ d }}" {% if d == 'medium' %}selected{% endif %}>{{ d|capitalize }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <button class="btn" id="go" type="submit" disabled style="margin-top:16px">Make my painting ✨</button>
+  <p class="muted center" style="margin:12px 0 0">Takes about 15 seconds. You get to preview it before anything prints.{% if kit %}<br>Numbers match the pots in your kit: {{ kit }}.{% endif %}</p>
+</form>
+<div id="busy" class="card center" style="display:none">
+  <div class="spinner"></div>
+  <div id="msg">Uploading your photo…</div>
+</div>
+<script>
+const photo = document.getElementById('photo'), thumb = document.getElementById('thumb'),
+      go = document.getElementById('go'), f = document.getElementById('f'),
+      busy = document.getElementById('busy'), pick = document.getElementById('pick');
+photo.addEventListener('change', () => {
+  const file = photo.files[0];
+  if (!file) return;
+  go.disabled = false;
+  pick.textContent = '📷 ' + (file.name.length > 28 ? file.name.slice(0, 25) + '…' : file.name);
+  thumb.onload = () => { thumb.style.display = 'block'; };
+  thumb.onerror = () => { thumb.style.display = 'none'; };
+  thumb.src = URL.createObjectURL(file);
+});
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  go.disabled = true; f.style.display = 'none'; busy.style.display = 'block';
+  try {
+    const r = await fetch('/api/jobs', { method: 'POST', body: new FormData(f) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    location.href = '/job/' + j.id;
+  } catch (err) {
+    busy.style.display = 'none'; f.style.display = 'block'; go.disabled = false;
+    alert('Upload failed: ' + err.message);
+  }
+});
+</script>
+{% endblock %}

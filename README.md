@@ -87,4 +87,5 @@ Without a kit, colours are numbered lightest to darkest, which is the usual pain
 - `pbn.py` – the image pipeline and PDF renderer (also a CLI)
 - `templates/` – phone upload page, result/print page, kiosk page
 - `paints.json` – the real paint kit (pot numbers + colours)
+- `DESIGN.md` – how the pipeline works and why; `NOTES.md` – working notes and gotchas
 - `jobs/` – one folder per upload (original, previews, PDF, job.json)

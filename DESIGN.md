@@ -129,17 +129,28 @@ Any kit can be substituted by supplying a file of the same shape.
 
 ## Face detection
 
-Contrast finds most eyes, but not all: a black Labrador's eyes, or a face in deep shadow,
-can fall under the top-hat threshold. OpenCV's bundled Haar cascades (human frontal face
-with an eye cascade inside each face, plus the frontal cat-face cascade) now run on the
-working-resolution image. For every detected face, the eye band is added to the detail
-mask outright: the detected eye boxes when the eye cascade fires, otherwise the band at
-20 % to 55 % of the face height for humans and 30 % to 60 % for cats. Inside a face, the
-top-hat thresholds are also halved so faint features are still picked up. Dogs have no
-bundled cascade and still rely on the contrast mask alone.
+Contrast finds most eyes, but not all: a face in deep shadow, or an old high-contrast scan,
+can fall under the top-hat threshold. When OpenCV is available, YuNet (a small CNN face
+detector shipped in the OpenCV model zoo, 233 KB of weights bundled under `models/`) runs on
+the working-resolution image. It returns a box per face plus five landmarks, two of which are
+the eye centres. Each eye centre becomes a box about a quarter of the face width, padded 25 %,
+and is added to the detail mask outright, so the eye is protected whatever its contrast. The
+detection costs a few hundredths of a second. Faces narrower than 4 % of the picture are
+ignored because their eyes could not be painted at 8 × 10 anyway.
+
+Two routes were tried and rejected first. OpenCV's Haar cascades would have covered cats too,
+but the OpenCV build available for Python 3.14 (compiled from source, no wheel yet) came out
+without the cascade classifier. scikit-image's Viola-Jones implementation can read OpenCV's
+LBP cascades, but took minutes per image. YuNet does not detect cats or dogs; pet eyes
+rely on the contrast mask, which handles them well because pet eyes are usually
+high-contrast against fur.
+
+OpenCV is an optional dependency (`requirements-faces.txt`): without it `find_faces`
+returns an empty list and everything else is unchanged.
 
 ## Known limits
 
+- Pets have no face detector; a very dark eye on very dark fur can still be missed.
 - Faces smaller than about 5 % of the picture cannot be painted at 8 × 10 regardless of
   settings; the eye would be smaller than a brush tip.
 - The kit colours are sampled from printed artwork, not measured paint.

@@ -73,6 +73,7 @@ class Result:
     paper: str
     labels: list[str] | None = None  # text printed for number i+1 (kit pot numbers); None = "1".."N"
     names: list[str] | None = None  # paint names from the kit, parallel to palette
+    faces: int = 0  # faces found by find_faces (human + cat)
 
     def label(self, num: int) -> str:
         return self.labels[num - 1] if self.labels else str(num)
@@ -120,12 +121,81 @@ def font_size_pt(radius_px: float, scale: float) -> float:
 DETAIL_WEIGHT = 12.0  # how much more a detail-mask pixel counts when choosing / keeping colours
 
 
-def detail_mask(rgb: np.ndarray, long_side: int) -> np.ndarray:
+YUNET_MODEL = Path(__file__).resolve().parent / "models" / "face_detection_yunet_2023mar.onnx"
+_YUNET: object | None | bool = None
+
+
+def _yunet():
+    """OpenCV's YuNet face detector, loaded once. False if OpenCV or the model is missing."""
+    global _YUNET
+    if _YUNET is None:
+        try:
+            import cv2  # optional dependency: face detection only
+
+            _YUNET = cv2.FaceDetectorYN_create(str(YUNET_MODEL), "", (320, 320), 0.6, 0.3, 50) if YUNET_MODEL.is_file() else False
+        except (ImportError, AttributeError, Exception):  # noqa: BLE001 - any failure just disables faces
+            _YUNET = False
+    return _YUNET
+
+
+def find_faces(rgb: np.ndarray) -> list[dict]:
+    """Human faces in the working-resolution image, with eye positions.
+
+    Returns [{"kind": "human", "box": (x, y, w, h), "eyes": [(x, y, w, h), (x, y, w, h)]}].
+    YuNet gives the two eye centres as landmarks; each becomes a box sized to the face.
+    Empty list when OpenCV or the model is missing. Pets are not detected by this model;
+    their eyes rely on the contrast-based detail mask."""
+    det = _yunet()
+    if not det:
+        return []
+    bgr = np.ascontiguousarray(rgb[..., ::-1])
+    h, w = bgr.shape[:2]
+    det.setInputSize((w, h))
+    _, found = det.detect(bgr)
+    faces: list[dict] = []
+    for f in [] if found is None else found:
+        x, y, fw, fh = (int(v) for v in f[:4])
+        if fw < 0.04 * max(w, h):
+            continue  # too small to paint an eye at 8x10 anyway
+        ew, eh = max(6, int(fw * 0.26)), max(4, int(fw * 0.16))
+        eyes = [(int(f[i]) - ew // 2, int(f[i + 1]) - eh // 2, ew, eh) for i in (4, 6)]
+        faces.append(dict(kind="human", box=(x, y, fw, fh), eyes=eyes, score=float(f[14])))
+    return faces
+
+
+def _face_eye_mask(shape, faces: list[dict], dark: np.ndarray, bright: np.ndarray) -> np.ndarray:
+    """Force the eye area of every detected face into the detail mask.
+
+    Detected eye boxes (padded a little) go in outright. Otherwise the eye band of the face
+    (20-55 % of its height for humans, 30-60 % for cats) is searched with half the normal
+    top-hat thresholds; if even that finds nothing, the band itself is protected."""
+    m = np.zeros(shape, dtype=bool)
+    H, W = shape
+    for f in faces:
+        x, y, w, h = f["box"]
+        if f["eyes"]:
+            for ex, ey, ew, eh in f["eyes"]:
+                px, py = int(ew * 0.25), int(eh * 0.25)
+                m[max(0, ey - py) : min(H, ey + eh + py), max(0, ex - px) : min(W, ex + ew + px)] = True
+            continue
+        b0, b1 = (0.20, 0.55) if f["kind"] == "human" else (0.30, 0.60)
+        ys, xs = slice(y + int(h * b0), min(H, y + int(h * b1))), slice(x + int(w * 0.1), min(W, x + int(w * 0.9)))
+        band = (dark[ys, xs] > 11) | (bright[ys, xs] > 14)
+        band = ndi.binary_opening(band, iterations=1)
+        if band.any():
+            m[ys, xs] |= ndi.binary_dilation(band, iterations=2)
+        else:
+            m[ys, xs] = True
+    return m
+
+
+def detail_mask(rgb: np.ndarray, long_side: int, faces: list[dict] | None = None) -> np.ndarray:
     """Where the small, high-contrast features live: eyes, pupils, catchlights, nostrils, mouths.
 
     Top-hat transforms on lightness pick out dark or bright features smaller than ~6% of the
     picture; we then protect those areas from the smoothing and dissolving that would
-    otherwise blur an eye into the fur or skin around it."""
+    otherwise blur an eye into the fur or skin around it. Detected faces (see find_faces)
+    get their eye area added regardless of contrast."""
     L = skcolor.rgb2lab(rgb.astype(np.float32) / 255.0)[..., 0]
     long_side = max(L.shape)  # the picture may be smaller than the preset asks for
     size = max(7, int(round(0.03 * long_side)) | 1)
@@ -142,7 +212,10 @@ def detail_mask(rgb: np.ndarray, long_side: int) -> np.ndarray:
         keep = (area >= lo) & (area <= hi)
         keep[0] = False
         m = keep[comp]
-    return ndi.binary_dilation(m, iterations=max(2, size // 4))
+    m = ndi.binary_dilation(m, iterations=max(2, size // 4))
+    if faces:
+        m |= _face_eye_mask(m.shape, faces, dark, bright)
+    return m
 
 
 def _sample_lab(lab: np.ndarray, mask: np.ndarray | None, seed: int) -> np.ndarray:
@@ -374,7 +447,8 @@ def process(
     # 1. shrink + denoise (lighter denoise where the fine detail is: eyes, noses, mouths)
     img = _fit(load_image(src), preset["work_long"])
     raw = np.asarray(img)
-    detail = detail_mask(raw, preset["work_long"])
+    faces = find_faces(raw)
+    detail = detail_mask(raw, preset["work_long"], faces)
     rgb = np.asarray(img.filter(ImageFilter.MedianFilter(preset["median"])))
     if preset["median"] > 3:
         rgb = np.where(detail[..., None], np.asarray(img.filter(ImageFilter.MedianFilter(3))), rgb)
@@ -435,7 +509,7 @@ def process(
         draw.text((x, y), txt, fill=(115, 115, 115), font=f, anchor="mm")
 
     colored = Image.fromarray(np.asarray(palette, dtype=np.uint8)[hi], "RGB")
-    return Result(outline, numbered, colored, palette, numbers, paper, labels_txt, names)
+    return Result(outline, numbered, colored, palette, numbers, paper, labels_txt, names, len(faces))
 
 
 # --------------------------------------------------------------------------- PDF
@@ -532,6 +606,7 @@ def save_outputs(res: Result, out_dir, title: str = "Paint by Numbers", preview_
         "hex": [_hex(c) for c in res.palette],
         "labels": res.labels or [str(i + 1) for i in range(len(res.palette))],
         "names": res.names,
+        "faces": res.faces,
         "regions": len(res.numbers),
         "size": list(res.size),
         "paper": res.paper,

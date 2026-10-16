@@ -1,0 +1,3 @@
+# Optional: face detection so human eyes are always protected (see README).
+# On Python 3.14 there is no prebuilt wheel yet and this compiles OpenCV from source (~40 min).
+opencv-python-headless

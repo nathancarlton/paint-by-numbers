@@ -115,7 +115,7 @@ def _worker(job_id: str, src: str) -> None:
         meta = pbn.save_outputs(res, JOBS_DIR / job_id, title=f"Paint by Numbers  #{job_id[:6]}")
         with _lock:
             job.update(status="done", palette=meta["hex"], labels=meta["labels"], names=meta["names"],
-                       regions=meta["regions"], n_colors=len(meta["hex"]))
+                       regions=meta["regions"], n_colors=len(meta["hex"]), faces=meta.get("faces", 0))
             _save(job)
     except Exception as e:  # noqa: BLE001 - surface anything to the phone
         app.logger.exception("job %s failed", job_id)

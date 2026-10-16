@@ -28,6 +28,19 @@ Options are environment variables:
 
 Example: `PBN_PRINTER=Canon_TS8000_series PBN_PAPER=a4 ./run.sh`
 
+### Optional: face detection
+
+Human eyes are protected by a face detector when OpenCV is installed:
+
+```bash
+.venv/bin/pip install -r requirements-faces.txt
+```
+
+Without it the pipeline still runs and eyes are found by contrast alone. The detector is
+OpenCV's YuNet model (`models/face_detection_yunet_2023mar.onnx`, bundled, Apache-2.0 from the
+OpenCV model zoo). On Python 3.14 pip currently compiles OpenCV from source, which takes a long
+time; on 3.12/3.13 it is a quick wheel install.
+
 ## Command line (no phone needed)
 
 ```bash
@@ -52,6 +65,8 @@ The pot colours were sampled from the maker's back-of-box artwork, not measured 
    label smoothing is weaker, regions may be half the usual size before being dissolved, and the
    mask's pixels count 12x when colours are chosen, so eyes keep their own colours instead of
    melting into the surrounding fur or skin.
+   If OpenCV is installed, YuNet face detection runs first and the two eye positions of every
+   human face are added to the mask outright, so eyes are kept even when they are low-contrast.
 2. K-means cluster the pixels in CIELAB (perceptual colour space) into N colours. With a paint kit,
    every pixel instead goes to its nearest pot, then pots are retired one at a time (whichever adds
    the least colour error) until N remain.
